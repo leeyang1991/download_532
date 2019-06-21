@@ -18,21 +18,13 @@ import sys
 
 # 参数设置
 # movie_code = sys.argv[1] # 电影代码
-# dirname = sys.argv[2] # 电影名称
-# disk = sys.argv[3] # 存储磁盘
 # 例如：
 movie_url = sys.argv[1]
-# movie_url = 'http://532movie.bnu.edu.cn/player/3379.html'
-# disk = 'G'
-# 设置临时下载目录
-# video_temp_path = disk+':\\python_video_download_temp\\'
 root_path = os.getcwd().replace('/','\\')+'\\'
 video_temp_path = os.getcwd().replace('/','\\')+'\\python_video_download_temp\\'
 
 print(root_path)
 
-
-# exit()
 video_temp_path1 = video_temp_path+'temp_movie\\'
 # 电影存放目录
 movie_path = root_path+'\\movie\\'
