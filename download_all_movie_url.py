@@ -17,16 +17,16 @@ import os
 import re
 import time
 import threading
-import sys
+import datetime
 
 ##下载路径目录##
 # root_path = os.getcwd().replace('/', '\\') + '\\'
-root_path = 'F:\\532_all_movie\\'
+root_path = 'E:\\532\\'
 ##下载路径目录##
-video_temp_path = root_path + 'python_video_download_temp\\'
-print(root_path)
-video_temp_path1 = video_temp_path + 'temp_movie\\'
-movie_path = root_path+'\\movie\\'
+# video_temp_path = root_path + 'python_video_download_temp\\'
+# print(root_path)
+# video_temp_path1 = video_temp_path + 'temp_movie\\'
+# movie_path = root_path+'\\movie\\'
 
 def get_all_movie_url():
     #自动生成电影栏下的所有页，每页包含30部电影
@@ -139,7 +139,7 @@ def split_videos(url):
     return all_movies
 
 
-def download_videos(video_urls):
+def download_videos(video_urls,video_temp_path):
     '''
     下载视频
     尝试连接10次失败后，结束
@@ -161,8 +161,9 @@ def download_videos(video_urls):
         except:
             attempts += 1
             # video_i = None
-            print 'retry times ',attempts
-            if attempts == 10:
+            # print 'retry times ',attempts
+            time.sleep(1)
+            if attempts == 100:
                 print 'download failed'
                 print 'please check your network connection'
                 os._exit(0)
@@ -176,7 +177,7 @@ def download_videos(video_urls):
 
 
 
-def concurrent_download_kernel(video_url):
+def concurrent_download_kernel(video_url,video_temp_path):
     attempts = 0
     success = False
     line = video_url
@@ -190,8 +191,9 @@ def concurrent_download_kernel(video_url):
         except:
             attempts += 1
             video_i = None
-            print 'retry times ', attempts
-            if attempts == 10:
+            print 'retry times ', attempts,'sleep 1 second'
+            time.sleep(1)
+            if attempts == 100:
                 print 'download failed'
                 print 'please check your network connection'
                 os._exit(0)
@@ -203,7 +205,7 @@ def concurrent_download_kernel(video_url):
         f.write(video_i.content)
 
 
-def concurrent_download(url,movie_name):
+def concurrent_download(url,movie_name,video_temp_path):
     '''
     并行下载
     :param num:  每份下载视频的个数
@@ -217,12 +219,12 @@ def concurrent_download(url,movie_name):
     for i in range(len(urls)):
         # print urls[i]
         # exit()
-        t = threading.Thread(target=download_videos,args=(urls[i],))
+        t = threading.Thread(target=download_videos,args=(urls[i],video_temp_path,))
         t.start()
         # t.join()
         # print str(i+1),'/',len(urls)
         if (i+1)%(len(urls)/100) == 0:
-            print movie_name,'%02d'%(float(i+1)/len(urls)*100),'%'
+            print 'initializing',movie_name,'%02d'%(float(i+1)/len(urls)*100),'%'
         # thread_ = len(threading.enumerate())
         # while 1:
         #     # time.sleep(1)
@@ -242,7 +244,7 @@ def concurrent_download(url,movie_name):
 
 
 
-def composite_videos(dirname,fname):
+def composite_videos(dirname,fname,video_temp_path,video_temp_path1,movie_path):
     '''
     合成下载的视频
     需要合成两次，一次合成不了那么多视频
@@ -282,12 +284,22 @@ def composite_videos(dirname,fname):
 
 
 def download_all_movie():
+
     f = open('movies_url_list.txt','r')
     lines = f.readlines()
     f.close()
     for line in lines:
         url = line.split('\n')[0]
         print(url)
+        str_date = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
+        # str_date = datetime.datetime.now()
+        # str_date.
+        video_temp_path = root_path + 'python_video_download_temp_' + str_date + '\\'
+        # print(root_path)
+        print(video_temp_path)
+        # exit()
+        video_temp_path1 = video_temp_path + 'temp_movie\\'
+        movie_path = root_path + '\\movie\\'
         # 建立临时文件夹
         if not os.path.isdir(video_temp_path):
             os.mkdir(video_temp_path)
@@ -302,8 +314,8 @@ def download_all_movie():
         # print 'attrib +s +h '+video_temp_path
         # exit()
         # 删除临时文件夹中的视频文件
-        os.system('del /Q ' + video_temp_path + '*.ts')
-        os.system('del /Q ' + video_temp_path1 + '*.ts')
+        # os.system('del /Q ' + video_temp_path + '*.ts')
+        # os.system('del /Q ' + video_temp_path1 + '*.ts')
         # url='http://532movie.bnu.edu.cn/player/'+str(movie_code)+'.html'
         # url = 'http://532movie.bnu.edu.cn/movie/3676.html'
         # url = movie_url
@@ -339,7 +351,7 @@ def download_all_movie():
             # all_num = int(split_videos(10,i)[-1][-1].split('/')[-1].split('.')[0][-7:])
             all_num = len(split_videos(i))
             # 并行下载
-            concurrent_download(i, dirname)
+            concurrent_download(i, dirname,video_temp_path)
             # 记录进程开始时间
             start = time.time()
             print url
@@ -367,7 +379,7 @@ def download_all_movie():
                     print 'break'
                     break
 
-                print 'checking', str(flag1), '%0.3f' % round((float(flag) / all_num * 100), 3) + '%', '\t', int(
+                print 'downloading', str(flag1), '%0.3f' % round((float(flag) / all_num * 100), 3) + '%', '\t', int(
                     end - start), 's'
                 # 如果下载文件的数量达到需要下载的视频数量则停止监测
                 if flag >= all_num:
@@ -375,13 +387,13 @@ def download_all_movie():
                 # 暂停一秒
                 time.sleep(1)
             # 合成下载的视频
-            composite_videos(dirname, fname)
+            composite_videos(dirname, fname,video_temp_path,video_temp_path1,movie_path)
             os.system('del /Q ' + video_temp_path + '*.ts')
             os.system('del /Q ' + video_temp_path1 + '*.ts')
             pass
         # 删除临时文件夹
-        os.rmdir(video_temp_path1)
-        os.rmdir(video_temp_path)
+        # os.rmdir(video_temp_path1)
+        # os.rmdir(video_temp_path)
 
 def main():
 
