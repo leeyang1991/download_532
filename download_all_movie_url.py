@@ -21,7 +21,7 @@ import datetime
 
 ##下载路径目录##
 # root_path = os.getcwd().replace('/', '\\') + '\\'
-root_path = 'E:\\532\\'
+root_path = 'F:\\532_all_movie\\'
 ##下载路径目录##
 # video_temp_path = root_path + 'python_video_download_temp\\'
 # print(root_path)
@@ -216,15 +216,22 @@ def concurrent_download(url,movie_name,video_temp_path):
     urls = split_videos(url)
     # print urls
     start = time.time()
+    threads = []
     for i in range(len(urls)):
         # print urls[i]
         # exit()
         t = threading.Thread(target=download_videos,args=(urls[i],video_temp_path,))
+        threads.append(t)
+    i=0
+    for t in threads:
         t.start()
-        # t.join()
+
         # print str(i+1),'/',len(urls)
         if (i+1)%(len(urls)/100) == 0:
             print 'initializing',movie_name,'%02d'%(float(i+1)/len(urls)*100),'%'
+        i+=1
+    for t in threads:
+        t.join()
         # thread_ = len(threading.enumerate())
         # while 1:
         #     # time.sleep(1)
