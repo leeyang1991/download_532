@@ -1,11 +1,14 @@
-# coding=utf-8
+# coding=gbk
 
 '''
 author: LiYang
 date: 20180405
 location: BNU Beijing
-description: ä¸‹è½½532è§†é¢‘ã€‚
-æ­¤è„šæœ¬ä»…ä¾›ä¸ªäººå­¦ä¹ ã€ç ”ç©¶ä¹‹ç”¨ï¼Œç¦æ­¢éæ³•ä¼ æ’­æˆ–ç”¨äºå•†ä¸šç”¨é€”ï¼Œè‹¥å‡ºç°ä¸€åˆ‡æ³•å¾‹é—®é¢˜ä¸æœ¬äººæ— å…³
+description: ÏÂÔØ532ÊÓÆµ¡£
+´Ë½Å±¾½ö¹©¸öÈËÑ§Ï°¡¢ÑĞ¾¿Ö®ÓÃ£¬½ûÖ¹·Ç·¨´«²¥»òÓÃÓÚÉÌÒµÓÃÍ¾£¬Èô³öÏÖÒ»ÇĞ·¨ÂÉÎÊÌâÓë±¾ÈËÎŞ¹Ø
+190412¸üĞÂ
+Ìæ»»invalid_char = '/\:*"<>|?'
+¸üĞÂ¶àÏß³ÌÏÂÔØ
 '''
 
 import urllib2
@@ -16,26 +19,34 @@ import time
 import threading
 import sys
 
-# å‚æ•°è®¾ç½®
-# movie_code = sys.argv[1] # ç”µå½±ä»£ç 
-# ä¾‹å¦‚ï¼š
-movie_url = sys.argv[1]
+# ²ÎÊıÉèÖÃ
+# movie_code = sys.argv[1] # µçÓ°´úÂë
+# dirname = sys.argv[2] # µçÓ°Ãû³Æ
+# disk = sys.argv[3] # ´æ´¢´ÅÅÌ
+# ÀıÈç£º
+# movie_url = sys.argv[1]
+movie_url = 'http://532movie.bnu.edu.cn/movie/159.html'
+# disk = 'G'
+# ÉèÖÃÁÙÊ±ÏÂÔØÄ¿Â¼
+# video_temp_path = disk+':\\python_video_download_temp\\'
 root_path = os.getcwd().replace('/','\\')+'\\'
 video_temp_path = os.getcwd().replace('/','\\')+'\\python_video_download_temp\\'
 
 print(root_path)
 
+
+# exit()
 video_temp_path1 = video_temp_path+'temp_movie\\'
-# ç”µå½±å­˜æ”¾ç›®å½•
+# µçÓ°´æ·ÅÄ¿Â¼
 movie_path = root_path+'\\movie\\'
 # print(video_temp_path1)
 # print(movie_path)
 # exit()
 def get_vedio_url(url):
     '''
-    é€šè¿‡æ­£åˆ™åŒ¹é…æŠ“å–è§†é¢‘çš„çœŸå®ä¸‹è½½åœ°å€åˆ—è¡¨
-    :param url: ç”µå½±æ’­æ”¾åœ°å€ï¼Œä¾‹å¦‚ï¼šhttp://532movie.bnu.edu.cn/player/3379-1.html
-    :return: è¿”å›è§†é¢‘çœŸå®ä¸‹è½½åœ°å€åˆ—è¡¨
+    Í¨¹ıÕıÔòÆ¥Åä×¥È¡ÊÓÆµµÄÕæÊµÏÂÔØµØÖ·ÁĞ±í
+    :param url: µçÓ°²¥·ÅµØÖ·£¬ÀıÈç£ºhttp://532movie.bnu.edu.cn/player/3379-1.html
+    :return: ·µ»ØÊÓÆµÕæÊµÏÂÔØµØÖ·ÁĞ±í
     '''
 
 
@@ -63,13 +74,22 @@ def get_vedio_url(url):
     p2 = re.findall("<title>.*?</title>",html)
 
     movie_name = p2[0]
-    movie_name = movie_name.replace(u'<title>æ­£åœ¨æ’­æ”¾ '.encode('utf-8'),'')
+    movie_name = movie_name.replace(u'<title>ÕıÔÚ²¥·Å '.encode('utf-8'),'')
     # print movie_name
     movie_name = movie_name.replace('  532movie</title>','')
     movie_name = movie_name.replace('/','.')
     movie_name = movie_name.replace(' ','_')
-    print movie_name.decode('utf-8').encode('gbk')
+
     # exit()
+    try:
+        print movie_name.decode('utf-8').encode('gbk')
+
+    except:
+        movie_name = movie_name.split('.')
+        print movie_name[0].decode('utf-8').encode('gbk')
+        movie_name = movie_name[0]
+
+
     # print movie_name
     # exit()
     urls = []
@@ -77,15 +97,15 @@ def get_vedio_url(url):
         urls.append(http+i)
     if len(urls) == 0:
         print 'invalid url'
-        exit()
+        os._exit(0)
     return movie_name,urls
 
 
-def split_videos(split_num,url):
+def split_videos(url):
     '''
-    ç”±äºè§†é¢‘è¢«åˆ†å‰²æˆå¾ˆå¤šä»½ï¼Œä¸€ä¸ªä¸ªä¸‹è½½é€Ÿåº¦æ¯”è¾ƒæ…¢ï¼Œéœ€è¦è¿›è¡Œå¹¶è¡Œä¸‹è½½
-    :param split_num: å¹¶è¡Œä¸‹è½½æ¯ä»½çš„è§†é¢‘ä¸ªæ•°
-    :param url: è§†é¢‘çš„çœŸå®ä¸‹è½½åœ°å€
+    ÓÉÓÚÊÓÆµ±»·Ö¸î³ÉºÜ¶à·İ£¬Ò»¸ö¸öÏÂÔØËÙ¶È±È½ÏÂı£¬ĞèÒª½øĞĞ²¢ĞĞÏÂÔØ
+    :param split_num: ²¢ĞĞÏÂÔØÃ¿·İµÄÊÓÆµ¸öÊı
+    :param url: ÊÓÆµµÄÕæÊµÏÂÔØµØÖ·
     :return:
     '''
     # url = 'http://172.16.215.40:5320/uploads/video6/hls/8/1/8/6/818696bdd65915601b6b6f74b5960abc/wl.m3u8'
@@ -97,58 +117,125 @@ def split_videos(split_num,url):
     for line in html:
         if line.endswith('.ts'):
             all_movies.append(line)
-    movies_split = []
-    for i in range(len(all_movies)/split_num):
-        movies_split.append(all_movies[i*split_num:(i+1)*split_num])
-    tail = len(all_movies)-len(movies_split)*split_num
-    movies_split.append(all_movies[-tail:])
-    return movies_split
+
+    # movies_split = []
+    # for i in range(len(all_movies)/split_num):
+    #     movies_split.append(all_movies[i*split_num:(i+1)*split_num])
+    # tail = len(all_movies)-len(movies_split)*split_num
+    # movies_split.append(all_movies[-tail:])
+
+    return all_movies
 
 
 def download_videos(video_urls):
     '''
-    ä¸‹è½½è§†é¢‘
-    :param video_urls: è§†é¢‘çœŸå®ä¸‹è½½åœ°å€
+    ÏÂÔØÊÓÆµ
+    ³¢ÊÔÁ¬½Ó10´ÎÊ§°Üºó£¬½áÊø
+    :param video_urls: ÊÓÆµÕæÊµÏÂÔØµØÖ·
     :return: None
     '''
-    for line in video_urls:
-        video_i = requests.get(line)
-        fname = line.split('/')[-1]
-        if os.path.isfile(video_temp_path+fname):
-            os.system('del /Q '+video_temp_path+fname)
-            exit()
-        with open(video_temp_path+fname,'wb') as f:
-            f.write(video_i.content)
+    # print 'downloading '+video_urls
+    attempts = 0
+    success = False
+    line = video_urls
+    # for line in video_urls:
+    while 1:
+        try:
+            # raise IOError
+            video_i = requests.get(line,timeout=3.)
+            success = True
+            attempts = 0
+            # print attempts
+        except:
+            attempts += 1
+            # video_i = None
+            print 'retry times ',attempts
+            if attempts == 10:
+                print 'download failed'
+                print 'please check your network connection'
+                os._exit(0)
+        if success == True:
+            break
+
+    fname = line.split('/')[-1]
+    with open(video_temp_path+fname,'wb') as f:
+        f.write(video_i.content)
+    # print 'done'
 
 
-def concurrent_download(num,url):
+
+def concurrent_download_kernel(video_url):
+    attempts = 0
+    success = False
+    line = video_url
+    while 1:
+        try:
+            # raise IOError
+            video_i = requests.get(line)
+            success = True
+            attempts = 0
+            # print attempts
+        except:
+            attempts += 1
+            video_i = None
+            print 'retry times ', attempts
+            if attempts == 10:
+                print 'download failed'
+                print 'please check your network connection'
+                os._exit(0)
+        if success == True:
+            break
+
+    fname = line.split('/')[-1]
+    with open(video_temp_path + fname, 'wb') as f:
+        f.write(video_i.content)
+
+
+def concurrent_download(url,movie_name):
     '''
-    å¹¶è¡Œä¸‹è½½
-    :param num:  æ¯ä»½ä¸‹è½½è§†é¢‘çš„ä¸ªæ•°
-    :param url:  è§†é¢‘çœŸå®ä¸‹è½½åœ°å€
-    :return:  æ¯ä¸ªPythonè¿›ç¨‹çš„pid
+    ²¢ĞĞÏÂÔØ
+    :param num:  Ã¿·İÏÂÔØÊÓÆµµÄ¸öÊı
+    :param url:  ÊÓÆµÕæÊµÏÂÔØµØÖ·
+    :return:  None
     '''
-    movies_split = split_videos(num,url)
-    pids = []
-    for i in movies_split:
-        # p=Process(target=download_videos,args=(i,))
-        # p.start()
-        # pids.append(p.pid)
-        t = threading.Thread(target=download_videos,args=(i,))
+    # movies_split = split_videos(num,url)
+    urls = split_videos(url)
+    # print urls
+    start = time.time()
+    for i in range(len(urls)):
+        # print urls[i]
+        # exit()
+        t = threading.Thread(target=download_videos,args=(urls[i],))
         t.start()
+        # t.join()
+        # print str(i+1),'/',len(urls)
+        if (i+1)%(len(urls)/100) == 0:
+            print movie_name,'%02d'%(float(i+1)/len(urls)*100),'%'
+        # thread_ = len(threading.enumerate())
+        # while 1:
+        #     # time.sleep(1)
+        #     # ¸üĞÂ
+        #     # python_process = self.count_python_process()
+        #     python_process = thread_
+        #     if python_process <= num:
+        #         break
+        #     else:
+        #         end = time.time()
+        #         # print
+        #         # current_files_len = count_files_num()
+        #         print int(end - start), 's', '/', 'python_process', python_process
+        #         # print('init_files_len',init_files_len)
+        #         # print 'looping'
+        #         # time.sleep(0.1)
 
-
-    # for p in pids:
-    #     print p
-    return pids
 
 
 def composite_videos(dirname,fname):
     '''
-    åˆæˆä¸‹è½½çš„è§†é¢‘
-    éœ€è¦åˆæˆä¸¤æ¬¡ï¼Œä¸€æ¬¡åˆæˆä¸äº†é‚£ä¹ˆå¤šè§†é¢‘
-    :param dirname:  å­˜å‚¨ç›®å½•
-    :param fname:  è§†é¢‘æ–‡ä»¶åç§°
+    ºÏ³ÉÏÂÔØµÄÊÓÆµ
+    ĞèÒªºÏ³ÉÁ½´Î£¬Ò»´ÎºÏ³É²»ÁËÄÇÃ´¶àÊÓÆµ
+    :param dirname:  ´æ´¢Ä¿Â¼
+    :param fname:  ÊÓÆµÎÄ¼şÃû³Æ
     :return:  None
     '''
     f_dir = video_temp_path
@@ -157,7 +244,7 @@ def composite_videos(dirname,fname):
     for f in f_list:
         if f.endswith('.ts'):
             shell_str_video_list.append(f_dir+f)
-    # ç¬¬ä¸€æ¬¡åˆæˆï¼Œæ¯æ¬¡åˆæˆ100ä¸ªæ–‡ä»¶
+    # µÚÒ»´ÎºÏ³É£¬Ã¿´ÎºÏ³É100¸öÎÄ¼ş
     shell_str_video_list_split = []
     for i in range(len(shell_str_video_list)/100):
         shell_str_video_list_split.append(shell_str_video_list[i*100:(i+1)*100])
@@ -168,39 +255,25 @@ def composite_videos(dirname,fname):
         flag += 1
         shell_str1 = '+'.join(shell_split)
         shell_str = 'copy /b '+shell_str1+' '+video_temp_path1+'temp_%05d'%flag
-        if os.path.isfile(movie_path+'%05d'%flag+'.ts'):
-            print 'please rename'
-            exit()
         os.system(shell_str+'.ts')
-    # ç¬¬äºŒæ¬¡åˆæˆ
+    # µÚ¶ş´ÎºÏ³É
     f1_dir = video_temp_path1
     f1_list = os.listdir(f1_dir)
     shell_str1 = []
     for i in f1_list:
         shell_str1.append(f1_dir+i)
     shell_str1 = '+'.join(shell_str1)
-    # dirname = unicode(dirname)
-    # print dirname
-    # exit()
-
-    # name = name.decode('utf-8')
-    # cmd_str = 'md '+name.encode('gbk')
-    # os.system(cmd_str)
-
-
-
-
     shell_str = 'copy /b '+shell_str1+' '+movie_path+dirname+'\\'+dirname+'"'+fname+'"'
 
-    os.system(shell_str+'.ts')
+    os.system(shell_str+'.mp4')
 
 
 def main():
     os.system('color 17')
-    os.system('@echo ç‰ˆæƒæ²¡æœ‰ ä¾µæƒä¸ç©¶')
-    os.system('@echo æ­¤pythonè„šæœ¬ä»…ä¾›ä¸ªäººå­¦ä¹ ã€ç ”ç©¶ä¹‹ç”¨ï¼Œç¦æ­¢éæ³•ä¼ æ’­æˆ–ç”¨äºå•†ä¸šç”¨é€”ï¼Œè‹¥å‡ºç°ä¸€åˆ‡æ³•å¾‹é—®é¢˜ä¸æœ¬äººæ— å…³')
+    # os.system('@echo °æÈ¨Ã»ÓĞ ÇÖÈ¨²»¾¿')
+    # os.system('@echo ´Ëpython½Å±¾½ö¹©¸öÈËÑ§Ï°¡¢ÑĞ¾¿Ö®ÓÃ£¬½ûÖ¹·Ç·¨´«²¥»òÓÃÓÚÉÌÒµÓÃÍ¾£¬Èô³öÏÖÒ»ÇĞ·¨ÂÉÎÊÌâÓë±¾ÈËÎŞ¹Ø')
     # os.system('pause')
-    # å»ºç«‹ä¸´æ—¶æ–‡ä»¶å¤¹
+    # ½¨Á¢ÁÙÊ±ÎÄ¼ş¼Ğ
     if not os.path.isdir(video_temp_path):
         os.mkdir(video_temp_path)
         os.system('attrib +s +h '+video_temp_path[:-1])
@@ -213,15 +286,22 @@ def main():
 
     # print 'attrib +s +h '+video_temp_path
     # exit()
-    # åˆ é™¤ä¸´æ—¶æ–‡ä»¶å¤¹ä¸­çš„è§†é¢‘æ–‡ä»¶
+    # É¾³ıÁÙÊ±ÎÄ¼ş¼ĞÖĞµÄÊÓÆµÎÄ¼ş
     os.system('del /Q '+video_temp_path+'*.ts')
     os.system('del /Q '+video_temp_path1+'*.ts')
     # url='http://532movie.bnu.edu.cn/player/'+str(movie_code)+'.html'
+    # url = 'http://532movie.bnu.edu.cn/movie/3676.html'
     url = movie_url
-    # è·å–çœŸå®ä¸‹è½½åœ°å€
+    # »ñÈ¡ÕæÊµÏÂÔØµØÖ·
     movie_name, download_url = get_vedio_url(url)
     movie_num = len(download_url)
-
+    invalid_char = '/\:*"<>|?'
+    # print movie_name,'before'
+    for ic in invalid_char:
+        if ic in movie_name:
+            movie_name = movie_name.replace(ic, '.')
+    # print movie_name,'after'
+    # exit()
     dirname = movie_name
     dirname = dirname.decode('utf-8')
     dirname = dirname.encode('gbk')
@@ -230,32 +310,33 @@ def main():
     if not os.path.isdir(movie_path+dirname):
         os.mkdir(movie_path+dirname)
 
-    # å¼€å§‹ä¸‹è½½æ¯ä¸ªè§†é¢‘
+    # ¿ªÊ¼ÏÂÔØÃ¿¸öÊÓÆµ
     for i in download_url:
         flag1 += 1
         fname = ' ('+str(flag1)+')'
-        # è‹¥å‘ç°è§†é¢‘æ–‡ä»¶å·²ç»ä¸‹è½½ï¼Œåˆ™è·³è¿‡ä¸‹è½½æ­¤è§†é¢‘
-        if os.path.isfile(movie_path+dirname+'\\'+dirname+''+fname+'.ts'):
-            print (movie_path+dirname+'\\'+dirname+''+fname+'.tså·²å­˜åœ¨')
+        # Èô·¢ÏÖÊÓÆµÎÄ¼şÒÑ¾­ÏÂÔØ£¬ÔòÌø¹ıÏÂÔØ´ËÊÓÆµ
+        if os.path.isfile(movie_path+dirname+'\\'+dirname+''+fname+'.mp4'):
+            print (movie_path+dirname+'\\'+dirname+''+fname+'.mp4ÒÑ´æÔÚ')
             continue
 
         print i
-        # éœ€è¦ä¸‹è½½çš„è§†é¢‘æ•°é‡
-        all_num = int(split_videos(10,i)[-1][-1].split('/')[-1].split('.')[0][-7:])
-        # å¹¶è¡Œä¸‹è½½
-        concurrent_download(20,i)
-        # è®°å½•è¿›ç¨‹å¼€å§‹æ—¶é—´
+        # ĞèÒªÏÂÔØµÄÊÓÆµÊıÁ¿
+        # all_num = int(split_videos(10,i)[-1][-1].split('/')[-1].split('.')[0][-7:])
+        all_num = len(split_videos(i))
+        # ²¢ĞĞÏÂÔØ
+        concurrent_download(i,dirname)
+        # ¼ÇÂ¼½ø³Ì¿ªÊ¼Ê±¼ä
         start = time.time()
         print url
         print fname,'/','%02d'%movie_num
         # download_files_len = 0
-        # ç›‘æµ‹ä¸‹è½½æ–‡ä»¶æ•°é‡ï¼Œæ¯ä¸€ç§’ç›‘æµ‹ä¸€æ¬¡
+        # ¼à²âÏÂÔØÎÄ¼şÊıÁ¿£¬Ã¿Ò»Ãë¼à²âÒ»´Î
         # second = -1
         while 1:
             download_files = os.listdir(video_temp_path)
             # download_files_len1 = len(download_files)
             flag = 0
-            # ç›‘æµ‹å·²ä¸‹è½½çš„æ–‡ä»¶æ•°é‡
+            # ¼à²âÒÑÏÂÔØµÄÎÄ¼şÊıÁ¿
             for f in download_files:
                 if f.endswith('.ts'):
                     flag+=1
@@ -266,32 +347,27 @@ def main():
             end = time.time()
             breakflag = 0
 
-            # ç»“æŸæ–‡ä»¶æ•°é‡ç›‘æµ‹
+            # ½áÊøÎÄ¼şÊıÁ¿¼à²â
             if breakflag == 1:
                 print 'break'
                 break
 
-            print dirname,str(flag1),'%0.3f'%round((float(flag)/all_num*100),3)+'%','\t',int(end-start),'s'
-            # å¦‚æœä¸‹è½½æ–‡ä»¶çš„æ•°é‡è¾¾åˆ°éœ€è¦ä¸‹è½½çš„è§†é¢‘æ•°é‡åˆ™åœæ­¢ç›‘æµ‹
+            print 'checking',str(flag1),'%0.3f'%round((float(flag)/all_num*100),3)+'%','\t',int(end-start),'s'
+            # Èç¹ûÏÂÔØÎÄ¼şµÄÊıÁ¿´ïµ½ĞèÒªÏÂÔØµÄÊÓÆµÊıÁ¿ÔòÍ£Ö¹¼à²â
             if flag >= all_num:
                 break
-            # æš‚åœä¸€ç§’
+            # ÔİÍ£Ò»Ãë
             time.sleep(1)
-        # åˆæˆä¸‹è½½çš„è§†é¢‘
+        # ºÏ³ÉÏÂÔØµÄÊÓÆµ
         composite_videos(dirname,fname)
         os.system('del /Q '+video_temp_path+'*.ts')
         os.system('del /Q '+video_temp_path1+'*.ts')
         pass
-    # åˆ é™¤ä¸´æ—¶æ–‡ä»¶å¤¹
+    # É¾³ıÁÙÊ±ÎÄ¼ş¼Ğ
     os.rmdir(video_temp_path1)
     os.rmdir(video_temp_path)
 
 
 if __name__ == '__main__':
-    # get_vedio_url()
+
     main()
-    # url = 'http://532movie.bnu.edu.cn/movie/3488.html'
-    # name,urls = get_vedio_url(url)
-    # name = name.decode('utf-8')
-    # cmd_str = 'md '+name.encode('gbk')
-    # os.system(cmd_str)
