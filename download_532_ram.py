@@ -161,13 +161,23 @@ def download_movies(url,movie_path):
         if ic in movie_name:
             movie_name = movie_name.replace(ic, '.')
     # print(movie_name)
+    # print(movie_path)
+
+    movie_name_utf8 = movie_name.decode('utf-8')
+    if os.path.isfile(movie_path+movie_name_utf8+'.mp4'):
+        # print(movie_name.encode('gbk'))
+        # print('.mp4 is existed')
+        return None
+    # print('downloading ',movie_name)
     # dirname = movie_name
-    movie_name = movie_name.decode('utf-8')
+    # exit()
+
     # dirname = dirname.encode('gbk')
 
     # open('C:\\Users\\ly\\PycharmProjects\\download_532\\movie\\'+movie_name, 'wb')
-    print(movie_name)
-    codecs.open(movie_path+movie_name, 'wb',encoding='gbk')
+    # print(movie_name)
+    # codecs.open(movie_path+movie_name, 'wb',encoding='gbk')
+    # codecs.open(movie_path + movie_name + '.mp4', 'wb')
     # exit()
     for i in urls:
         pool = ThreadPool(10)
@@ -177,22 +187,32 @@ def download_movies(url,movie_path):
         pool.close()
         pool.join()
         # print(results)
-        with open(movie_name,'wb') as movie:
-            for r in results:
-                movie.write(r)
+        movie = codecs.open(movie_path+movie_name_utf8+'.mp4', 'wb')
+        for r in results:
+            movie.write(r)
+        movie.close()
 
 
 def main():
-    movie_path = 'F:\\532_all_movie\\'
+    movie_path = 'E:\\532_all_movie\\movie\\'
     if not os.path.isdir(movie_path):
         os.makedirs(movie_path)
     f = open('movies_url_list.txt', 'r')
     lines = f.readlines()
     f.close()
+    import log_process
+    flag = 0
+    time_init = time.time()
     for line in lines:
+        time_start = time.time()
         url = line.split('\n')[0]
-        print(url)
+        # print(url)
+        movie_name, urls = get_vedio_url(url)
+        # print(movie_name.decode('utf-8').encode('gbk'))
         download_movies(url,movie_path)
+        time_end = time.time()
+        log_process.process_bar(flag,len(lines),time_init,time_start,time_end,'\n')
+        flag+=1
 
 
 if __name__ == '__main__':

@@ -21,7 +21,7 @@ import datetime
 
 ##下载路径目录##
 # root_path = os.getcwd().replace('/', '\\') + '\\'
-root_path = 'E:\\532\\'
+root_path = 'F:\\532_all_movie\\'
 ##下载路径目录##
 # video_temp_path = root_path + 'python_video_download_temp\\'
 # print(root_path)
@@ -325,6 +325,8 @@ def download_all_movie():
         # url = movie_url
         # 获取真实下载地址
         movie_name, download_url = get_vedio_url(url)
+        # print(movie_name)
+        # exit()
         movie_num = len(download_url)
         invalid_char = '/\:*"<>|?'
         # print movie_name,'before'

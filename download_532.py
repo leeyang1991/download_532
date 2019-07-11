@@ -25,7 +25,7 @@ import sys
 # disk = sys.argv[3] # 存储磁盘
 # 例如：
 # movie_url = sys.argv[1]
-movie_url = 'http://532movie.bnu.edu.cn/movie/159.html'
+movie_url = 'http://532movie.bnu.edu.cn/movie/3738.html'
 # disk = 'G'
 # 设置临时下载目录
 # video_temp_path = disk+':\\python_video_download_temp\\'
@@ -86,6 +86,8 @@ def get_vedio_url(url):
 
     except:
         movie_name = movie_name.split('.')
+        print(movie_name[0])
+        # print movie_name[0].decode('utf-8')
         print movie_name[0].decode('utf-8').encode('gbk')
         movie_name = movie_name[0]
 
