@@ -21,7 +21,7 @@ import datetime
 
 ##下载路径目录##
 # root_path = os.getcwd().replace('/', '\\') + '\\'
-root_path = 'F:\\532_all_movie\\'
+root_path = 'E:\\532\\'
 ##下载路径目录##
 # video_temp_path = root_path + 'python_video_download_temp\\'
 # print(root_path)
@@ -224,14 +224,11 @@ def concurrent_download(url,movie_name,video_temp_path):
         threads.append(t)
     i=0
     for t in threads:
+        i += 1
         t.start()
-
-        # print str(i+1),'/',len(urls)
         if (i+1)%(len(urls)/100) == 0:
             print 'initializing',movie_name,'%02d'%(float(i+1)/len(urls)*100),'%'
-        i+=1
-    for t in threads:
-        t.join()
+    return threads
         # thread_ = len(threading.enumerate())
         # while 1:
         #     # time.sleep(1)
@@ -358,7 +355,7 @@ def download_all_movie():
             # all_num = int(split_videos(10,i)[-1][-1].split('/')[-1].split('.')[0][-7:])
             all_num = len(split_videos(i))
             # 并行下载
-            concurrent_download(i, dirname,video_temp_path)
+            threads = concurrent_download(i, dirname,video_temp_path)
             # 记录进程开始时间
             start = time.time()
             print url
@@ -393,11 +390,18 @@ def download_all_movie():
                     break
                 # 暂停一秒
                 time.sleep(1)
+
+            print('closing threads')
+            for t in threads:
+                t.join()
+
             # 合成下载的视频
             composite_videos(dirname, fname,video_temp_path,video_temp_path1,movie_path)
-            os.system('del /Q ' + video_temp_path + '*.ts')
-            os.system('del /Q ' + video_temp_path1 + '*.ts')
-            pass
+            # 关闭进程
+
+            # os.system('del /Q ' + video_temp_path + '*.ts')
+            # os.system('del /Q ' + video_temp_path1 + '*.ts')
+            # pass
         # 删除临时文件夹
         # os.rmdir(video_temp_path1)
         # os.rmdir(video_temp_path)
