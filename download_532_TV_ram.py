@@ -1,22 +1,22 @@
-# coding=gbk
+# coding=utf-8
 
 '''
 author: LiYang
 date: 20180405
 location: BNU Beijing
-description: ÏÂÔØ532ÊÓÆµ¡£
-´Ë½Å±¾½ö¹©¸öÈËÑ§Ï°¡¢ÑĞ¾¿Ö®ÓÃ£¬½ûÖ¹·Ç·¨´«²¥»òÓÃÓÚÉÌÒµÓÃÍ¾£¬Èô³öÏÖÒ»ÇĞ·¨ÂÉÎÊÌâÓë±¾ÈËÎŞ¹Ø
-190412¸üĞÂ
-Ìæ»»invalid_char = '/\:*"<>|?'
-¸üĞÂ¶àÏß³ÌÏÂÔØ
-190711¸üĞÂ
-1¡¢¸Ä±äÏÂÔØ²ßÂÔ£¬½«*.tsÎÄ¼şÏÈĞ´ÈëÄÚ´æ£¬ÔÙ´æÈë´ÅÅÌ
-2¡¢Ê¹ÓÃpool ºÍ map¹¦ÄÜ²¢ĞĞÏÂÔØ
-3¡¢ÓÃcodecs¿âĞ´ÎÄ¼şÃû£¬²»ÓÃgbkºÍutf-8×ª»»
-190713¸üĞÂ
-1¡¢Ê¹ÓÃtqdm½ø¶ÈÌõ
-2¡¢ĞÂÔöËÑË÷¹¦ÄÜ
-3¡¢ĞÂÔöÑ¡¼¯¹¦ÄÜ
+description: ä¸‹è½½532è§†é¢‘ã€‚
+æ­¤è„šæœ¬ä»…ä¾›ä¸ªäººå­¦ä¹ ã€ç ”ç©¶ä¹‹ç”¨ï¼Œç¦æ­¢éæ³•ä¼ æ’­æˆ–ç”¨äºå•†ä¸šç”¨é€”ï¼Œè‹¥å‡ºç°ä¸€åˆ‡æ³•å¾‹é—®é¢˜ä¸æœ¬äººæ— å…³
+190412æ›´æ–°
+æ›¿æ¢invalid_char = '/\:*"<>|?'
+æ›´æ–°å¤šçº¿ç¨‹ä¸‹è½½
+190711æ›´æ–°
+1ã€æ”¹å˜ä¸‹è½½ç­–ç•¥ï¼Œå°†*.tsæ–‡ä»¶å…ˆå†™å…¥å†…å­˜ï¼Œå†å­˜å…¥ç£ç›˜
+2ã€ä½¿ç”¨pool å’Œ mapåŠŸèƒ½å¹¶è¡Œä¸‹è½½
+3ã€ç”¨codecsåº“å†™æ–‡ä»¶åï¼Œä¸ç”¨gbkå’Œutf-8è½¬æ¢
+190713æ›´æ–°
+1ã€ä½¿ç”¨tqdmè¿›åº¦æ¡
+2ã€æ–°å¢æœç´¢åŠŸèƒ½
+3ã€æ–°å¢é€‰é›†åŠŸèƒ½
 '''
 
 import urllib2
@@ -33,14 +33,25 @@ from multiprocessing import Pool
 # import tqdm
 from tqdm import *
 
-# µçÓ°´æ·ÅÄ¿Â¼
+# ç”µå½±å­˜æ”¾ç›®å½•
 root_path = os.getcwd()+'\\'
 # movie_path = root_path+'movie\\'
 
 
+def check_connection():
+    url = 'http://532movie.bnu.edu.cn/'
+    try:
+        req = urllib2.Request(url)
+        response = urllib2.urlopen(req)
+        # html = response.read()
+        print('connection success!')
+    except:
+        print('connecting to http://532movie.bnu.edu.cn/ failed\nplease check you network connection')
+        os.system('pause')
+        exit()
 
 def get_all_movie_url():
-    #×Ô¶¯Éú³ÉµçÓ°À¸ÏÂµÄËùÓĞÒ³£¬Ã¿Ò³°üº¬30²¿µçÓ°
+    #è‡ªåŠ¨ç”Ÿæˆç”µå½±æ ä¸‹çš„æ‰€æœ‰é¡µï¼Œæ¯é¡µåŒ…å«30éƒ¨ç”µå½±
     page = range(1,38)
     # url_ = 'http://532movie.bnu.edu.cn/list/1/p/'
     url_ = 'http://532movie.bnu.edu.cn/list/2/p/'
@@ -70,6 +81,7 @@ def search_page(keyword,page):
     page = page + 1
     search_url = 'http://532movie.bnu.edu.cn/video/search/wd/' + keyword + '/p/' + str(page) + '.html'
     # print(search_url)
+    search_url = search_url.decode('gbk').encode('utf-8')
     req = urllib2.Request(search_url)
     response = urllib2.urlopen(req)
     html = response.read()
@@ -86,7 +98,7 @@ def search(keyword):
     req = urllib2.Request(search_url)
     response = urllib2.urlopen(req)
     html = response.read()
-
+    # print(html)
     total = re.findall('<br/><div class="page">.*?.&nbsp', html)
     num_char = []
     for num in range(10):
@@ -111,31 +123,32 @@ def search(keyword):
 
     allcode = []
     flag = 0
+    print('searching...')
     for i in arg:
         flag += 1
-        print('searching page %s/%s'%(flag,len(arg)))
         codes = search_page(i[0],i[1])
         for c in codes:
             if c not in allcode:
                 allcode.append(c)
             else:
                 pass
-    dic = {}
+    movie_name_list = []
+    url_list = []
     for code in allcode:
-        url = 'http://532movie.bnu.edu.cn/player/'+code+'-1.html'
-        # all_url.append(url)
+        url = 'http://532movie.bnu.edu.cn/player/'+code+'.html'
         movie_name,_ = get_vedio_url(url)
-        dic[movie_name] = url
+        movie_name_list.append(movie_name)
+        url_list.append(url)
 
-    return dic
+    return movie_name_list,url_list
 
 
 
 def get_vedio_url(url):
     '''
-    Í¨¹ıÕıÔòÆ¥Åä×¥È¡ÊÓÆµµÄÕæÊµÏÂÔØµØÖ·ÁĞ±í
-    :param url: µçÓ°²¥·ÅµØÖ·£¬ÀıÈç£ºhttp://532movie.bnu.edu.cn/player/3379.html
-    :return: ·µ»ØÊÓÆµÕæÊµÏÂÔØµØÖ·ÁĞ±í
+    é€šè¿‡æ­£åˆ™åŒ¹é…æŠ“å–è§†é¢‘çš„çœŸå®ä¸‹è½½åœ°å€åˆ—è¡¨
+    :param url: ç”µå½±æ’­æ”¾åœ°å€ï¼Œä¾‹å¦‚:http://532movie.bnu.edu.cn/player/3379.html
+    :return: è¿”å›è§†é¢‘çœŸå®ä¸‹è½½åœ°å€åˆ—è¡¨
     '''
     url_new = url.split('/')
     url_new[-2] = 'player'
@@ -161,7 +174,7 @@ def get_vedio_url(url):
     p2 = re.findall("<title>.*?</title>",html)
 
     movie_name = p2[0]
-    movie_name = movie_name.replace(u'<title>ÕıÔÚ²¥·Å '.encode('utf-8'),'')
+    movie_name = movie_name.replace(u'<title>æ­£åœ¨æ’­æ”¾ '.encode('utf-8'),'')
     # print movie_name
     movie_name = movie_name.replace('  532movie</title>','')
     movie_name = movie_name.replace('/',' ')
@@ -178,9 +191,9 @@ def get_vedio_url(url):
 
 def split_videos(url):
     '''
-    ÓÉÓÚÊÓÆµ±»·Ö¸î³ÉºÜ¶à·İ£¬Ò»¸ö¸öÏÂÔØËÙ¶È±È½ÏÂı£¬ĞèÒª½øĞĞ²¢ĞĞÏÂÔØ
-    :param split_num: ²¢ĞĞÏÂÔØÃ¿·İµÄÊÓÆµ¸öÊı
-    :param url: ÊÓÆµµÄÕæÊµÏÂÔØµØÖ·
+    ç”±äºè§†é¢‘è¢«åˆ†å‰²æˆå¾ˆå¤šä»½ï¼Œä¸€ä¸ªä¸ªä¸‹è½½é€Ÿåº¦æ¯”è¾ƒæ…¢ï¼Œéœ€è¦è¿›è¡Œå¹¶è¡Œä¸‹è½½
+    :param split_num: å¹¶è¡Œä¸‹è½½æ¯ä»½çš„è§†é¢‘ä¸ªæ•°
+    :param url: è§†é¢‘çš„çœŸå®ä¸‹è½½åœ°å€
     :return:
     '''
     # url = 'http://172.16.215.40:5320/uploads/video6/hls/8/1/8/6/818696bdd65915601b6b6f74b5960abc/wl.m3u8'
@@ -198,9 +211,9 @@ def split_videos(url):
 
 def download_ts(video_urls):
     '''
-    ÏÂÔØÊÓÆµ
-    ³¢ÊÔÁ¬½Ó100´ÎÊ§°Üºó£¬½áÊø
-    :param video_urls: ÊÓÆµÕæÊµÏÂÔØµØÖ·
+    ä¸‹è½½è§†é¢‘
+    å°è¯•è¿æ¥100æ¬¡å¤±è´¥åï¼Œç»“æŸ
+    :param video_urls: è§†é¢‘çœŸå®ä¸‹è½½åœ°å€
     :return: None
     '''
     # print 'downloading '+video_urls
@@ -227,10 +240,7 @@ def download_ts(video_urls):
         if success == True:
             break
 
-
-    # fname = line.split('/')[-1]
     ts = video_i.content
-    # return fname,ts
     return ts
 
 
@@ -247,7 +257,7 @@ def download_movies(url,movie_path,selected_episodes = range(1,int(1e5))):
     for ic in invalid_char:
         if ic in movie_name:
             movie_name = movie_name.replace(ic, '.')
-    print(movie_name)
+    print(movie_name.decode('utf-8'))
 
     movie_name_utf8 = movie_name.decode('utf-8')
     episode = 0
@@ -298,7 +308,7 @@ def download_movies(url,movie_path,selected_episodes = range(1,int(1e5))):
             lenurl = len(urls)
             len_selected = len(selected_episodes)
             length = min([lenurl,len_selected])
-            log_process.process_bar(flag,length,time_init,time_start,time_end,movie_name+'\n')
+            log_process.process_bar(flag,length,time_init,time_start,time_end,movie_name.decode('utf-8').encode('gbk')+'\n')
             flag += 1
 
 
@@ -327,15 +337,138 @@ def down_from_text():
 
 def main():
     # url = 'http://532movie.bnu.edu.cn/movie/3981.html'
-    url = 'http://532movie.bnu.edu.cn/movie/3968.html'
-    movie_path = 'C:\\Users\\ly\\Downloads\\Video\\'
-    selected = [40,41]
-    download_movies(url, movie_path,selected)
+    check_connection()
+    while 1:
+        # try:
+        print('********************')
+
+        movie_path = os.getcwd()+'\\movie\\'
+        if not os.path.isdir(movie_path):
+            os.mkdir(movie_path)
+        print 'default path is:',movie_path
+        input_str = raw_input('please input the movie`s url(e.g.:http://532movie.bnu.edu.cn/movie/3981.html)\nor enter a keyword(e.g."å‘¨æ˜Ÿé©°" or "å–œå‰§ä¹‹ç‹"):'.decode('utf-8').encode('gbk'))
+        if len(input_str) == 0:
+            continue
+        if input_str.startswith('http'):
+            movie_name, urls = get_vedio_url(input_str)
+            print(movie_name.decode('utf-8').encode('gbk'))
+            y_n = raw_input('yes/no(y/n) or push enter directly:')
+            if y_n in ['n','N','no']:
+                continue
+            else:
+                pass
+            if len(urls)==1:
+                download_movies(input_str, movie_path)
+            else:
+                episode_str = raw_input('there are %s episodes, please input a series of numbers like this(e.g.:1,10,15 or 1-3,4-10)'%len(urls))
+                episodes = episode_str.split(',')
+                selected = []
+                for e in episodes:
+                    if '-' in e:
+                        e_split = e.split('-')
+                        e_start = e_split[0]
+                        e_end = e_split[1]
+                        ee = range(int(e_start),int(e_end)+1)
+                        for ei in ee:
+                            selected.append(ei)
+                    else:
+
+                        selected.append(int(e))
+
+                selected.sort()
+                fail1 = 0
+                selected.sort()
+                for s in selected:
+                    if s > len(urls):
+                        print('there are no episode %s' % s)
+                        fail1 = 1
+                    elif s < 1:
+                        print('input error...')
+                        fail1 = 1
+                if fail1 == 1:
+                    continue
+                download_movies(input_str, movie_path,selected_episodes=selected)
+
+        else:
+            movies,urls_ = search(input_str)
+            movie_num = len(movies)
+            print('here we got %s'%movie_num+' movies')
+            for i in range(len(movies)):
+                print i+1,'.',movies[i].decode('utf-8').encode('gbk')
+                # print(urls_[i])
+            if movie_num == 0:
+                raw_input('search failed, examine your input...\npush enter to continue')
+                continue
+            num = raw_input('select a number(1-%s):'%movie_num)
+            try:
+                num = int(num)
+            except:
+                num = None
+                print('input error...')
+                continue
+            if num > movie_num or num < 1:
+                print('input error...')
+                continue
+            url = urls_[num-1]
+            print 'start downloading:\n', movies[num-1].decode('utf-8').encode('gbk')
+            y_n = raw_input('yes/no(y/n) or push enter directly:')
+            if y_n in ['n', 'N', 'no']:
+                continue
+            else:
+                pass
+            movie_name, urls = get_vedio_url(url)
+
+
+            if len(urls)==1:
+                download_movies(url, movie_path)
+            else:
+                episode_str = raw_input('there are %s episodes, please input a series of numbers like this(e.g.:1,10,15 or 1-3,4-10)'%len(urls))
+                episodes = episode_str.split(',')
+                selected = []
+                fail = 0
+                for e in episodes:
+                    try:
+                        if '-' in e:
+                            e_split = e.split('-')
+                            e_start = e_split[0]
+                            e_end = e_split[1]
+                            ee = range(int(e_start),int(e_end)+1)
+                            for ei in ee:
+                                selected.append(ei)
+                        else:
+                            selected.append(int(e))
+                    except:
+                        print('input error...')
+                        fail = 1
+                if fail:
+                    continue
+
+                fail1 = 0
+                selected.sort()
+                for s in selected:
+                    if s > len(urls):
+                        print('there are no episode %s' % s)
+                        fail1 = 1
+                    elif s < 1:
+                        print('input error...')
+                        fail1 = 1
+                if fail1 == 1:
+                    continue
+
+                download_movies(url, movie_path,selected_episodes=selected)
+        raw_input(u'Doneï¼\npush enter to continue...\n********************\n********************')
+        os.system('cls')
+        # except Exception as e:
+        #     print(e)
+        #     print(u'input error, retry...')
+
+
 
 
 if __name__ == '__main__':
-    all_url = search(u'ÀîÑ©Á«'.encode('utf-8'))
-    for i in all_url:
-        print(i)
-        print(all_url[i])
-    print(len(all_url))
+    main()
+    # all_url = search(u'æé›ªè²'.encode('utf-8'))
+    # for i in all_url:
+    #     print(i)
+    #     print(all_url[i])
+    # print(len(all_url))
