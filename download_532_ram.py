@@ -131,7 +131,7 @@ def download_ts(video_urls):
         except:
             attempts += 1
             # video_i = None
-            print 'retry times ',attempts
+            # print 'retry times ',attempts
             video_i = None
             if attempts == 100:
                 print 'download failed'
@@ -180,7 +180,7 @@ def download_movies(url,movie_path):
     # codecs.open(movie_path + movie_name + '.mp4', 'wb')
     # exit()
     for i in urls:
-        pool = ThreadPool(10)
+        pool = ThreadPool(20)
         ts = split_videos(i)
         results = pool.map(download_ts,ts)
         # results = pool.map(download_videos_get_fname,ts)

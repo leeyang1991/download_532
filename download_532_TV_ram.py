@@ -13,6 +13,10 @@ description: 下载532视频。
 1、改变下载策略，将*.ts文件先写入内存，再存入磁盘
 2、使用pool 和 map功能并行下载
 3、用codecs库写文件名，不用gbk和utf-8转换
+190713更新
+1、使用tqdm进度条
+2、新增搜索功能
+3、新增选集功能
 '''
 
 import urllib2
@@ -25,6 +29,9 @@ import threading
 import sys
 import log_process
 from multiprocessing.dummy import Pool as ThreadPool
+from multiprocessing import Pool
+# import tqdm
+from tqdm import *
 
 # 电影存放目录
 root_path = os.getcwd()+'\\'
@@ -59,11 +66,75 @@ def get_all_movie_url():
     fw.close()
 
 
+def search_page(keyword,page):
+    page = page + 1
+    search_url = 'http://532movie.bnu.edu.cn/video/search/wd/' + keyword + '/p/' + str(page) + '.html'
+    # print(search_url)
+    req = urllib2.Request(search_url)
+    response = urllib2.urlopen(req)
+    html = response.read()
+    movies = re.findall('<a href="/movie/.*?.html" target=', html)
+    code_list = []
+    for i in movies:
+        code = i.split('/')[-1].split('.')[0]
+        code_list.append(code)
+    return code_list
+
+def search(keyword):
+    page = 1
+    search_url = 'http://532movie.bnu.edu.cn/video/search/wd/'+keyword+'/p/'+str(page)+'.html'
+    req = urllib2.Request(search_url)
+    response = urllib2.urlopen(req)
+    html = response.read()
+
+    total = re.findall('<br/><div class="page">.*?.&nbsp', html)
+    num_char = []
+    for num in range(10):
+        num_char.append(str(num))
+
+    total_num = []
+    for i in total:
+        for j in i:
+            if j in num_char:
+                total_num.append(j)
+    # print(total_num)
+    if len(total_num) == 0:
+        total_page = 1
+    else:
+        total_num = int(''.join(total_num))
+        total_page = total_num/10+1
+
+    range_totala_page = range(total_page)
+    arg = []
+    for i in range(len(range_totala_page)):
+        arg.append([keyword,range_totala_page[i]])
+
+    allcode = []
+    flag = 0
+    for i in arg:
+        flag += 1
+        print('searching page %s/%s'%(flag,len(arg)))
+        codes = search_page(i[0],i[1])
+        for c in codes:
+            if c not in allcode:
+                allcode.append(c)
+            else:
+                pass
+    dic = {}
+    for code in allcode:
+        url = 'http://532movie.bnu.edu.cn/player/'+code+'-1.html'
+        # all_url.append(url)
+        movie_name,_ = get_vedio_url(url)
+        dic[movie_name] = url
+
+    return dic
+
+
 
 def get_vedio_url(url):
     '''
     通过正则匹配抓取视频的真实下载地址列表
-    :param url: 电影播放地址，例如：http://532movie.bnu.edu.cn/player/3379-1.html
+    :param url: 电影播放地址，例如：http://532movie.bnu.edu.cn/player/3379.html
     :return: 返回视频真实下载地址列表
     '''
     url_new = url.split('/')
@@ -96,20 +167,6 @@ def get_vedio_url(url):
     movie_name = movie_name.replace('/',' ')
     # movie_name = movie_name.replace(' ','_')
 
-    # exit()
-    # try:
-        # movie_name.decode('utf-8').encode('gbk')
-        # pass
-    # except:
-        # movie_name = movie_name.split('.')
-        # print(movie_name[0])
-        # print movie_name[0].decode('utf-8')
-        # print movie_name[0].decode('utf-8').encode('gbk')
-        # movie_name = movie_name[0]
-
-
-    # print movie_name
-    # exit()
     urls = []
     for i in url1:
         urls.append(http+i)
@@ -177,7 +234,8 @@ def download_ts(video_urls):
     return ts
 
 
-def download_movies(url,movie_path):
+
+def download_movies(url,movie_path,selected_episodes = range(1,int(1e5))):
     '''
     :param url: 'http://532movie.bnu.edu.cn/player/3379.html'
     :return: None
@@ -186,27 +244,12 @@ def download_movies(url,movie_path):
     '''
     movie_name, urls = get_vedio_url(url)
     invalid_char = '/\:*"<>|?'
-    # print movie_name,'before'
     for ic in invalid_char:
         if ic in movie_name:
             movie_name = movie_name.replace(ic, '.')
     print(movie_name)
-    # print(movie_path)
 
     movie_name_utf8 = movie_name.decode('utf-8')
-
-    # print('downloading ',movie_name)
-    # dirname = movie_name
-    # exit()
-
-    # dirname = dirname.encode('gbk')
-
-    # open('C:\\Users\\ly\\PycharmProjects\\download_532\\movie\\'+movie_name, 'wb')
-    # print(movie_name)
-    # codecs.open(movie_path+movie_name, 'wb',encoding='gbk')
-    # codecs.open(movie_path + movie_name + '.mp4', 'wb')
-    # exit()
-
     episode = 0
     flag = 0
     time_init = time.time()
@@ -216,19 +259,24 @@ def download_movies(url,movie_path):
             if os.path.isfile(movie_path + movie_name_utf8 + '.mp4'):
                 print(movie_path + movie_name_utf8 + '.mp4 is already existed')
                 return None
-            pool = ThreadPool(20)
             ts = split_videos(i)
-            results = pool.map(download_ts, ts)
-            # results = pool.map(download_videos_get_fname,ts)
+
+            pool = ThreadPool(20)
+            bar_fmt = 'Downloading\t' + '|{bar}|{percentage:3.0f}%'
+            results = list(tqdm(pool.imap(download_ts, ts), total=len(ts), ncols=50, bar_format=bar_fmt))
             pool.close()
             pool.join()
-
+            # print('Writing to disk...')
             movie = codecs.open(movie_path+movie_name_utf8+'.mp4', 'wb')
-            for r in results:
-                movie.write(r)
+            bar_fmt1 = 'writing to disk\t' + '|{bar}|{percentage:3.0f}%'
+            for i in tqdm(range(len(results)),bar_format=bar_fmt1, ncols=50):
+                movie.write(results[i])
             movie.close()
+
         else:
             episode += 1
+            if episode not in selected_episodes:
+                continue
             TV_dir = movie_path + movie_name_utf8 + '\\'
             if not os.path.isdir(TV_dir):
                 os.makedirs(TV_dir)
@@ -238,21 +286,24 @@ def download_movies(url,movie_path):
                 continue
             pool = ThreadPool(20)
             ts = split_videos(i)
-            results = pool.map(download_ts, ts)
-            # results = pool.map(download_videos_get_fname,ts)
+            bar_fmt = 'Episode %02d'%episode+'|{bar}|{percentage:3.0f}%'
+            results = list(tqdm(pool.imap(download_ts, ts),total=len(ts),ncols=50,bar_format=bar_fmt))
             pool.close()
             pool.join()
 
             movie = codecs.open(TV_dir+'Episode '+ '%02d'%episode+'.mp4','wb')
             for r in results:
                 movie.write(r)
-        time_end = time.time()
-        log_process.process_bar(flag,len(urls),time_init,time_start,time_end,movie_name+'\n')
-        flag += 1
+            time_end = time.time()
+            lenurl = len(urls)
+            len_selected = len(selected_episodes)
+            length = min([lenurl,len_selected])
+            log_process.process_bar(flag,length,time_init,time_start,time_end,movie_name+'\n')
+            flag += 1
 
 
 
-def main():
+def down_from_text():
     movie_path = 'E:\\532_all_movie\\TV\\'
     if not os.path.isdir(movie_path):
         os.makedirs(movie_path)
@@ -274,5 +325,17 @@ def main():
         flag+=1
 
 
+def main():
+    # url = 'http://532movie.bnu.edu.cn/movie/3981.html'
+    url = 'http://532movie.bnu.edu.cn/movie/3968.html'
+    movie_path = 'C:\\Users\\ly\\Downloads\\Video\\'
+    selected = [40,41]
+    download_movies(url, movie_path,selected)
+
+
 if __name__ == '__main__':
-    main()
+    all_url = search(u'李雪莲'.encode('utf-8'))
+    for i in all_url:
+        print(i)
+        print(all_url[i])
+    print(len(all_url))
