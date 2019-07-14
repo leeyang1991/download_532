@@ -81,7 +81,9 @@ def search_page(keyword,page):
     page = page + 1
     search_url = 'http://532movie.bnu.edu.cn/video/search/wd/' + keyword + '/p/' + str(page) + '.html'
     # print(search_url)
-    search_url = search_url.decode('gbk').encode('utf-8')
+    # search_url = search_url.decode('gbk').decode('utf-8')
+    search_url = search_url.decode('gbk','ignore').encode('utf-8')
+    # search_url = search_url.encode('utf-8')
     req = urllib2.Request(search_url)
     response = urllib2.urlopen(req)
     html = response.read()
@@ -257,9 +259,15 @@ def download_movies(url,movie_path,selected_episodes = range(1,int(1e5))):
     for ic in invalid_char:
         if ic in movie_name:
             movie_name = movie_name.replace(ic, '.')
-    print(movie_name.decode('utf-8'))
+    try:
+        print(movie_name.decode('utf-8').encode('gbk','ignore'))
+    except:
+        print(movie_name.split()[0].decode('utf-8').encode('gbk','ignore'))
 
-    movie_name_utf8 = movie_name.decode('utf-8')
+    try:
+        movie_name_utf8 = movie_name.decode('utf-8').encode('gbk','ignore')
+    except:
+        movie_name_utf8 = movie_name.split()[0].decode('utf-8').encode('gbk','ignore')
     episode = 0
     flag = 0
     time_init = time.time()
@@ -308,7 +316,11 @@ def download_movies(url,movie_path,selected_episodes = range(1,int(1e5))):
             lenurl = len(urls)
             len_selected = len(selected_episodes)
             length = min([lenurl,len_selected])
-            log_process.process_bar(flag,length,time_init,time_start,time_end,movie_name.decode('utf-8').encode('gbk')+'\n')
+            try:
+                name = movie_name.decode('utf-8').encode('gbk','ignore')
+            except:
+                name = movie_name.split()[0].decode('utf-8').encode('gbk','ignore')
+            log_process.process_bar(flag,length,time_init,time_start,time_end,name+'\n')
             flag += 1
 
 
@@ -339,95 +351,37 @@ def main():
     # url = 'http://532movie.bnu.edu.cn/movie/3981.html'
     check_connection()
     while 1:
-        # try:
-        print('********************')
+        try:
+            print('********************')
 
-        movie_path = os.getcwd()+'\\movie\\'
-        if not os.path.isdir(movie_path):
-            os.mkdir(movie_path)
-        print 'default path is:',movie_path
-        input_str = raw_input('please input the movie`s url(e.g.:http://532movie.bnu.edu.cn/movie/3981.html)\nor enter a keyword(e.g."周星驰" or "喜剧之王"):'.decode('utf-8').encode('gbk'))
-        if len(input_str) == 0:
-            continue
-        if input_str.startswith('http'):
-            movie_name, urls = get_vedio_url(input_str)
-            print(movie_name.decode('utf-8').encode('gbk'))
-            y_n = raw_input('yes/no(y/n) or push enter directly:')
-            if y_n in ['n','N','no']:
+            movie_path = os.getcwd()+'\\movie\\'
+            if not os.path.isdir(movie_path):
+                os.mkdir(movie_path)
+            print 'default path is:',movie_path
+            input_str = raw_input('please input the movie`s url(e.g.:http://532movie.bnu.edu.cn/movie/3981.html)\nor enter a keyword(e.g."周星驰" or "喜剧之王"):'.decode('utf-8').encode('gbk','ignore'))
+            if len(input_str) == 0:
                 continue
-            else:
-                pass
-            if len(urls)==1:
-                download_movies(input_str, movie_path)
-            else:
-                episode_str = raw_input('there are %s episodes, please input a series of numbers like this(e.g.:1,10,15 or 1-3,4-10)'%len(urls))
-                episodes = episode_str.split(',')
-                selected = []
-                for e in episodes:
-                    if '-' in e:
-                        e_split = e.split('-')
-                        e_start = e_split[0]
-                        e_end = e_split[1]
-                        ee = range(int(e_start),int(e_end)+1)
-                        for ei in ee:
-                            selected.append(ei)
-                    else:
-
-                        selected.append(int(e))
-
-                selected.sort()
-                fail1 = 0
-                selected.sort()
-                for s in selected:
-                    if s > len(urls):
-                        print('there are no episode %s' % s)
-                        fail1 = 1
-                    elif s < 1:
-                        print('input error...')
-                        fail1 = 1
-                if fail1 == 1:
+            if input_str.startswith('http'):
+                movie_name, urls = get_vedio_url(input_str)
+                # print(movie_name.decode('utf-8'))
+                try:
+                    print(movie_name.decode('utf-8').encode('gbk','ignore'))
+                except:
+                    print(movie_name.split()[0].decode('utf-8').encode('gbk','ignore'))
+                    print(movie_name.split()[0].decode('utf-8').encode('gbk','ignore'))
+                    # encode('GBK', 'ignore').decode('GBk')
+                y_n = raw_input('yes/no(y/n) or push enter directly:')
+                if y_n in ['n','N','no']:
                     continue
-                download_movies(input_str, movie_path,selected_episodes=selected)
-
-        else:
-            movies,urls_ = search(input_str)
-            movie_num = len(movies)
-            print('here we got %s'%movie_num+' movies')
-            for i in range(len(movies)):
-                print i+1,'.',movies[i].decode('utf-8').encode('gbk')
-                # print(urls_[i])
-            if movie_num == 0:
-                raw_input('search failed, examine your input...\npush enter to continue')
-                continue
-            num = raw_input('select a number(1-%s):'%movie_num)
-            try:
-                num = int(num)
-            except:
-                num = None
-                print('input error...')
-                continue
-            if num > movie_num or num < 1:
-                print('input error...')
-                continue
-            url = urls_[num-1]
-            print 'start downloading:\n', movies[num-1].decode('utf-8').encode('gbk')
-            y_n = raw_input('yes/no(y/n) or push enter directly:')
-            if y_n in ['n', 'N', 'no']:
-                continue
-            else:
-                pass
-            movie_name, urls = get_vedio_url(url)
-
-
-            if len(urls)==1:
-                download_movies(url, movie_path)
-            else:
-                episode_str = raw_input('there are %s episodes, please input a series of numbers like this(e.g.:1,10,15 or 1-3,4-10)'%len(urls))
-                episodes = episode_str.split(',')
-                selected = []
-                fail = 0
-                for e in episodes:
-                    try:
+                else:
+                    pass
+                if len(urls)==1:
+                    download_movies(input_str, movie_path)
+                else:
+                    episode_str = raw_input('there are %s episodes, please input a series of numbers like this(e.g.:1,10,15 or 1-3,4-10)'%len(urls))
+                    episodes = episode_str.split(',')
+                    selected = []
+                    for e in episodes:
                         if '-' in e:
                             e_split = e.split('-')
                             e_start = e_split[0]
@@ -436,31 +390,102 @@ def main():
                             for ei in ee:
                                 selected.append(ei)
                         else:
+
                             selected.append(int(e))
+
+                    selected.sort()
+                    fail1 = 0
+                    selected.sort()
+                    for s in selected:
+                        if s > len(urls):
+                            print('there are no episode %s' % s)
+                            fail1 = 1
+                        elif s < 1:
+                            print('input error...')
+                            fail1 = 1
+                    if fail1 == 1:
+                        continue
+                    download_movies(input_str, movie_path,selected_episodes=selected)
+
+            else:
+                movies,urls_ = search(input_str)
+                movie_num = len(movies)
+                print('here we got %s'%movie_num+' movies')
+                for i in range(len(movies)):
+                    try:
+                        movies[i].decode('utf-8').encode('gbk','ignore')
+                        print i+1,'.',movies[i].decode('utf-8').encode('gbk','ignore')
                     except:
-                        print('input error...')
-                        fail = 1
-                if fail:
+                        print i + 1, '.', movies[i].split()[0].decode('utf-8').encode('gbk','ignore')
+                    # print(urls_[i])
+                if movie_num == 0:
+                    raw_input('search failed, examine your input...\npush enter to continue')
                     continue
-
-                fail1 = 0
-                selected.sort()
-                for s in selected:
-                    if s > len(urls):
-                        print('there are no episode %s' % s)
-                        fail1 = 1
-                    elif s < 1:
-                        print('input error...')
-                        fail1 = 1
-                if fail1 == 1:
+                num = raw_input('select a number(1-%s):'%movie_num)
+                try:
+                    num = int(num)
+                except:
+                    num = None
+                    print('input error...')
                     continue
+                if num > movie_num or num < 1:
+                    print('input error...')
+                    continue
+                url = urls_[num-1]
+                try:
+                    print 'start downloading:\n', movies[num-1].decode('utf-8').encode('gbk','ignore')
+                except:
+                    print 'start downloading:\n', movies[num - 1].split()[0].decode('utf-8').encode('gbk','ignore')
+                y_n = raw_input('yes/no(y/n) or push enter directly:')
+                if y_n in ['n', 'N', 'no']:
+                    continue
+                else:
+                    pass
+                movie_name, urls = get_vedio_url(url)
 
-                download_movies(url, movie_path,selected_episodes=selected)
-        raw_input(u'Done！\npush enter to continue...\n********************\n********************')
-        os.system('cls')
-        # except Exception as e:
-        #     print(e)
-        #     print(u'input error, retry...')
+
+                if len(urls)==1:
+                    download_movies(url, movie_path)
+                else:
+                    episode_str = raw_input('there are %s episodes, please input a series of numbers like this(e.g.:1,10,15 or 1-3,4-10)'%len(urls))
+                    episodes = episode_str.split(',')
+                    selected = []
+                    fail = 0
+                    for e in episodes:
+                        try:
+                            if '-' in e:
+                                e_split = e.split('-')
+                                e_start = e_split[0]
+                                e_end = e_split[1]
+                                ee = range(int(e_start),int(e_end)+1)
+                                for ei in ee:
+                                    selected.append(ei)
+                            else:
+                                selected.append(int(e))
+                        except:
+                            print('input error...')
+                            fail = 1
+                    if fail:
+                        continue
+
+                    fail1 = 0
+                    selected.sort()
+                    for s in selected:
+                        if s > len(urls):
+                            print('there are no episode %s' % s)
+                            fail1 = 1
+                        elif s < 1:
+                            print('input error...')
+                            fail1 = 1
+                    if fail1 == 1:
+                        continue
+
+                    download_movies(url, movie_path,selected_episodes=selected)
+            raw_input(u'Done！\npush enter to continue...\n********************\n********************')
+            os.system('cls')
+        except Exception as e:
+            print(e)
+            print(u'input error, retry...')
 
 
 
