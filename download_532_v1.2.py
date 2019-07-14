@@ -360,7 +360,7 @@ def main():
     # url = 'http://532movie.bnu.edu.cn/movie/3981.html'
     check_connection()
     while 1:
-        # try:
+        try:
             print('********************')
 
             movie_path = os.getcwd()+'\\movie\\'
@@ -492,9 +492,9 @@ def main():
                     download_movies(url, movie_path,selected_episodes=selected)
             raw_input(u'Done！\npush enter to continue...\n********************\n********************')
             os.system('cls')
-        # except Exception as e:
-        #     print(e)
-        #     print(u'input error, retry...')
+        except Exception as e:
+            print(e)
+            print(u'input error, retry...')
 
 
 
