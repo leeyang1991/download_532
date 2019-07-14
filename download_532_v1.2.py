@@ -96,7 +96,11 @@ def search_page(keyword,page):
 
 def search(keyword):
     page = 1
-    search_url = 'http://532movie.bnu.edu.cn/video/search/wd/'+keyword+'/p/'+str(page)+'.html'
+    search_url = 'http://532movie.bnu.edu.cn/video/search/wd/' + keyword + '/p/' + str(page) + '.html'
+    # print(search_url)
+    # search_url = search_url.decode('gbk').decode('utf-8')
+    search_url = search_url.decode('gbk', 'ignore').encode('utf-8')
+    # print(search_url)
     req = urllib2.Request(search_url)
     response = urllib2.urlopen(req)
     html = response.read()
@@ -106,6 +110,7 @@ def search(keyword):
     for num in range(10):
         num_char.append(str(num))
 
+    # print(total)
     total_num = []
     for i in total:
         for j in i:
@@ -126,9 +131,10 @@ def search(keyword):
     allcode = []
     flag = 0
     print('searching...')
-    for i in arg:
+    for i in tqdm(range(len(arg))):
         flag += 1
-        codes = search_page(i[0],i[1])
+        # print(flag,'/',len(arg))
+        codes = search_page(arg[i][0],arg[i][1])
         for c in codes:
             if c not in allcode:
                 allcode.append(c)
@@ -136,8 +142,11 @@ def search(keyword):
                 pass
     movie_name_list = []
     url_list = []
-    for code in allcode:
-        url = 'http://532movie.bnu.edu.cn/player/'+code+'.html'
+    flag1 = 0
+    for code in tqdm(range(len(allcode))):
+        flag1 += 1
+        # print(flag1,'/',len(allcode))
+        url = 'http://532movie.bnu.edu.cn/player/'+allcode[code]+'.html'
         movie_name,_ = get_vedio_url(url)
         movie_name_list.append(movie_name)
         url_list.append(url)
@@ -351,7 +360,7 @@ def main():
     # url = 'http://532movie.bnu.edu.cn/movie/3981.html'
     check_connection()
     while 1:
-        try:
+        # try:
             print('********************')
 
             movie_path = os.getcwd()+'\\movie\\'
@@ -483,17 +492,13 @@ def main():
                     download_movies(url, movie_path,selected_episodes=selected)
             raw_input(u'Done！\npush enter to continue...\n********************\n********************')
             os.system('cls')
-        except Exception as e:
-            print(e)
-            print(u'input error, retry...')
+        # except Exception as e:
+        #     print(e)
+        #     print(u'input error, retry...')
 
 
 
 
 if __name__ == '__main__':
     main()
-    # all_url = search(u'李雪莲'.encode('utf-8'))
-    # for i in all_url:
-    #     print(i)
-    #     print(all_url[i])
-    # print(len(all_url))
+
